@@ -57,6 +57,7 @@ define(['gmaps', 'infobox'], function (gmaps, Infobox) {
             });
             markers = [];
             markerData.forEach(function(data) {
+                console.log(data);
                 var marker = new gmaps.Marker({
                     position: new gmaps.LatLng(data.lat, data.lng),
                     map: map

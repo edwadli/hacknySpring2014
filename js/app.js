@@ -40,7 +40,7 @@ define(['map', 'firebase'], function (Map, Firebase) {
         });
         fireRef.child('heatmap').on('child_added', function(snapshot) {
             if (snapshot.val() === null) return;
-            console.log("received heatmap point: " + snapshot.val());
+            // console.log("received heatmap point: " + snapshot.val());
             Map.setHeatmapPoint(snapshot.val());
         });
         fireRef.child('markers').on('value', function(snapshot) {
