@@ -20,8 +20,8 @@ instagram_client_secret = 'c4b0f208cda64720b534fc14b126007b'
 DIST = str(5000)
 TIME_LAPSE = 6 # in hours
 
-nycLat = str(40.805406700000000000)
-nycLng = str(-73.961330699999960000)
+#nycLat = str(40.805406700000000000)
+#nycLng = str(-73.961330699999960000)
 
 def getData(lat,lng):
 	time = str(calendar.timegm((datetime.datetime.now() - datetime.timedelta(hours=TIME_LAPSE)).utctimetuple()))
