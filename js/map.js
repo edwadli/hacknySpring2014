@@ -10,6 +10,13 @@ define(['gmaps'], function (gmaps) {
             };
             map = new gmaps.Map(document.getElementById("map-canvas"),
                 mapOptions);
+            gmaps.event.addListener(map, 'bounds_changed', function () {
+                this.onBoundsChanged(map.getBounds());
+            }.bind(this));
+        },
+        // default onBoundsChanged function
+        onBoundsChanged: function (bounds) {
+            console.log("bounds changed");
         }
     };
 

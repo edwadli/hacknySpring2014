@@ -2,6 +2,7 @@ define(['map'], function (Map) {
 
     var App = {
         init: function() {
+            Map.onBoundsChanged = setBounds;
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(function (location) {
                     Map.load(location.coords.latitude, location.coords.longitude);
@@ -12,6 +13,10 @@ define(['map'], function (Map) {
             }
         }
     };
+
+    function setBounds(bounds) {
+        console.log("bounds set: " + bounds);
+    }
 
     return App;
 });
