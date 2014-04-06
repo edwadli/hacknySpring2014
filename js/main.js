@@ -15,7 +15,7 @@ requirejs.config({
 });
 
 // convert Google Maps into an AMD module
-define('gmaps', ['async!https://maps.googleapis.com/maps/api/js?key=AIzaSyDahbc1_iJT8jmCpMpbIZ6p7Pm1ryyIaK4&sensor=true'],
+define('gmaps', ['async!https://maps.googleapis.com/maps/api/js?key=AIzaSyDahbc1_iJT8jmCpMpbIZ6p7Pm1ryyIaK4&sensor=true&libraries=visualization'],
 function(){
     // return the gmaps namespace for brevity
     return window.google.maps;
