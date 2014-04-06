@@ -1,0 +1,8 @@
+CLIENT ID	f4c597a88f114c0ba8eb949d54336a58
+CLIENT SECRET	c4b0f208cda64720b534fc14b126007b
+
+instagram_client_key = 'T0foLprojTuyETudVyaUPYUeP'
+instagram_client_secret = 'nmY0z8LClJr1vuTUCnIORsiFtaTzW6ckVJDvj60ATMXryhlQlw'
+
+twitter_access_token = '719330150-eM3GGu06smiyVBu6qp09acCP1YTmULr50ftvytAq'
+twitter_access_token_secret = 'atlE2CeabrB49A9ld0meSZinWPBSl9aslW5KoTwBHBX3H'
