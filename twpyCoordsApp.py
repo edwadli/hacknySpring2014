@@ -2,9 +2,13 @@ import tweepy
 import json
 import globeDist
 import time
+import re
+import urllib2
 from firebase import firebase
 
+
 # Authentication details. To  obtain these visit dev.twitter.com
+
 consumer_key = 'T0foLprojTuyETudVyaUPYUeP'
 consumer_secret = 'nmY0z8LClJr1vuTUCnIORsiFtaTzW6ckVJDvj60ATMXryhlQlw'
 
@@ -31,7 +35,7 @@ class StdOutListener(tweepy.StreamListener):
 
 def updateFirebase(myLat, myLng, myRad):
     
-    loc = str(myLng) + ',' + str(myLat) + ',' + str(myRad) + 'mi'
+    loc = str(myLat) + ',' + str(myLng) + ',' + str(myRad) + 'mi'
     l = StdOutListener()
     auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
     auth.set_access_token(access_token, access_token_secret)
@@ -45,23 +49,30 @@ def updateFirebase(myLat, myLng, myRad):
     #stream.filter(track=['hackNY'])
         #,locations=[-74,40,-73,41])
     api = tweepy.API(auth)
-
+    count = 0
     heatmap_coords = []
-    myTwts = api.search(geocode=loc, count=10000)
-    textStr = ""
+    myTwts = api.search(q='4sq.com', geocode=loc, count=10)
     for i, tweet in enumerate(myTwts):
-        textStr += tweet.text.encode('ascii', 'ignore')
+        count += 1
+        print 'Tweet', tweet.text.encode('ascii', 'ignore')
+        url = re.findall('4sq.com/(?:[a-zA-Z]|[0-9])+',
+                        tweet.text)
+        if url:
+            the_html = urllib2.urlopen(url[0]).read()
+            print the_html
         if tweet.coordinates != None:
             coords = tweet.coordinates['coordinates']
-            heatmap_coords.append({'lng':coords[1],
-                                    'lat':coords[0],
+            heatmap_coords.append({'lng':coords[0],
+                                    'lat':coords[1],
                                     'id': i})
             #print '%s %s %s' %(tweet.created_at, tweet.text.encode('ascii', 'ignore'), tweet.coordinates['coordinates'])
-    return heatmap_coords, textStr
+    #print "The count is" + str(count)
+    return heatmap_coords
 
 
-def callback_renewBounds(response):
-    fb_bounds = fb.get('/bounds', None)
+def callback_renewBounds(events):
+    print "event", events
+    fb_bounds = events
     NE = fb_bounds[0]
     SW = fb_bounds[1]
     print NE
@@ -74,13 +85,17 @@ def callback_renewBounds(response):
     myLat = (NE['lat']+SW['lat'])/2.0
     myLng = (NE['lng']+SW['lng'])/2.0
 
-    heatmap_coords, textStr = updateFirebase(myLat, myLng, myRad)
+    heatmap_coords = updateFirebase(myLat, myLng, myRad)
     post_result = fb.put('/', 'heatmap', heatmap_coords)
     print post_result
 
+
 if __name__ == '__main__':
-    fb.get_async('/bounds',None,callback=callback_renewBounds)
+    #fb.get_async('/bounds',None,callback=callback_renewBounds)
+    fb.put('/', 'changed', True)
     while True:
-        time.sleep(5)
-        fb.get_async('/bounds',None,callback=callback_renewBounds)
-    
+        if fb.get('/changed', None):
+            fb.put('/', 'changed', False)
+            fb.get_async('/bounds',None,callback=callback_renewBounds)
+
+
