@@ -11,20 +11,60 @@ import urlparse
 import datetime
 import calendar
 import urllib2
+import numpy
 from instagram.client import InstagramAPI
 from instagram import client, oauth2, InstagramAPIError
 
-def getData(lat,lng):
-	time = str(calendar.timegm((datetime.datetime.now() - datetime.timedelta(hours=TIME_LAPSE)).utctimetuple()))
-	getInfo = urllib2.urlopen('https://api.instagram.com/v1/media/search?lat=' + lat + '&lng=' + lng + '&distance=' + DIST + '&min_timestamp='+ time + '&client_id=' + instagram_client_key).read()
-	return json.loads(getInfo)['data']
+#takes an array of dictionaries with 'lat' and 'lng' keys
+def calculateMarkerPointFromRelatedCoordinated(coordinateArray):
+	finalPoint = { 'lat' : 0, 'lng' : 0}
+	latitudes = []
+	longitudes = []
+	for point in coordinateArray:
+		latitudes.append(point['lat'])
+		longitudes.append(point['lng'])
+	latMean = numpy.mean(latitudes)
+	latStd = numpy.std(latitudes)
+	lngMean = numpy.mean(longitudes)
+	lngStd = numpy.std(longitudes)
+	sumLats = 0.0
+	sumLngs = 0.0
+	count = 0
+	for coordinate in coordinateArray:
+		currLat = coordinate['lat']
+		currLng = coordinate['lng']
+		if latMean + 1.5 * latStd > currLat and latMean - 1.5 * latStd < currLat and lngMean + 1.5 * lngStd > currLng and lngMean - 1.5 * lngStd < currLng:
+			sumLats += currLat
+			sumLngs += currLng
+			count += 1
+	print count
+	return { 'lat' : sumLats / count, 'lng' : sumLngs / count}
 
-def getInstagramURLSForCoordinateAndHashtag(lat,lng,tag):
-	images = []
-	data = getData(lat,lng)
-	for post in data:
-		if tag in post['tags']:
-			images.append(post['images']);
-	return images
 
-
+points = [
+			{
+				'lat' : 40.57886,
+				'lng' : -73.345
+			},
+			{
+				'lat' : 40.57886,
+				'lng' : -73.345
+			},
+			{
+				'lat' : 41.243,
+				'lng' : -73.345
+			},
+			{
+				'lat' : 20.93242,
+				'lng' : 49.45345
+			},
+			{
+				'lat' : 40.57886,
+				'lng' : -73.345
+			},
+			{
+				'lat' : 40.57886,
+				'lng' : -74.54
+			}
+		]
+print calculateMarkerPointFromRelatedCoordinated(points)
