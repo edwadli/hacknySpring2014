@@ -2,6 +2,7 @@ define(['gmaps'], function (gmaps) {
     var map, outerBounds, // outer bounding box
     heatmap = new gmaps.visualization.HeatmapLayer({data:[]}),
     heatmapData = [],
+    markers = [],
     OUTER_BOUNDS_RATIO = 3;
 
     var Map = {
@@ -39,6 +40,21 @@ define(['gmaps'], function (gmaps) {
                 heatmapData.push(p);
             });
             updateHeatmap();
+        },
+        setMarkers: function (markerData) {
+            // remove old markers
+            markers.forEach(function (marker) {
+                marker.setMap(null);
+            });
+            markers = [];
+            markerData.forEach(function(data) {
+                var marker = new gmaps.Marker({
+                    position: new gmaps.LatLng(data.lat, data.lng),
+                    map: map
+                });
+                markers.push(marker);
+                // add meta data
+            });
         }
     };
 

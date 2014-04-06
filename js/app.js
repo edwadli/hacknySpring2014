@@ -2,7 +2,7 @@ define(['map'], function (Map) {
 
     var App = {
         init: function() {
-            Map.onLoad = Map.setHeatmapPoints.bind(Map, getTestPoints());
+            Map.onLoad = Map.setMarkers.bind(Map, getTestPoints());
             Map.onBoundsChanged = setBounds;
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(function (location) {
@@ -33,7 +33,7 @@ define(['map'], function (Map) {
             e = ne.lng();
         }
 
-        for (var i = 0; i < 100; i++) {
+        for (var i = 0; i < 50; i++) {
             points.push({
                 lat: s + (n-s)*Math.random(),
                 lng: w + (e-w)*Math.random()
@@ -44,7 +44,7 @@ define(['map'], function (Map) {
 
     function setBounds(bounds) {
         console.log("bounds set: " + bounds);
-        Map.setHeatmapPoints(getTestPoints(bounds.getSouthWest(), bounds.getNorthEast()));
+        Map.setMarkers(getTestPoints(bounds.getSouthWest(), bounds.getNorthEast()));
     }
 
     return App;
