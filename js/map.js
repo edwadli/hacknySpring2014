@@ -1,9 +1,9 @@
-define(['gmaps'], function (gmaps) {
+define(['gmaps', 'infobox'], function (gmaps, Infobox) {
     var map, outerBounds, // outer bounding box
     heatmap = new gmaps.visualization.HeatmapLayer({data:[]}),
     heatmapData = [],
     markers = [],
-    OUTER_BOUNDS_RATIO = 3;
+    OUTER_BOUNDS_RATIO = 1.5;
 
     var Map = {
         load: function loadMap(lat, lng) {
@@ -14,8 +14,9 @@ define(['gmaps'], function (gmaps) {
             };
             map = new gmaps.Map(document.getElementById("map-canvas"),
                 mapOptions);
+            Infobox.init(new gmaps.InfoWindow(), map);
             gmaps.event.addListenerOnce(map, 'idle', function () {
-                // this.onLoad(map.getBounds());
+                this.onLoad(map.getBounds());
             }.bind(this));
             gmaps.event.addListener(map, 'idle', function () {
                 var bounds = map.getBounds();
@@ -38,9 +39,15 @@ define(['gmaps'], function (gmaps) {
         setHeatmapPoints: function (points) {
             heatmapData = [];
             points.forEach(function (point) {
+                // console.log(point);
                 var p =new gmaps.LatLng(point.lat, point.lng);
                 heatmapData.push(p);
             });
+            updateHeatmap();
+        },
+        setHeatmapPoint: function (point) {
+            var p =new gmaps.LatLng(point.lat, point.lng);
+            heatmapData.push(p);
             updateHeatmap();
         },
         setMarkers: function (markerData) {
@@ -56,14 +63,37 @@ define(['gmaps'], function (gmaps) {
                 });
                 markers.push(marker);
                 // add meta data
+                gmaps.event.addListener(marker, 'click', function() {
+                    Infobox.setMarker(marker, data); // wee closures
+                });
             });
         }
     };
 
     function updateHeatmap() {
-        heatmap.setMap(null);
-        heatmap = new gmaps.visualization.HeatmapLayer({data: heatmapData});
+        var oldMap = heatmap;
+        heatmap = new gmaps.visualization.HeatmapLayer({
+            data: heatmapData,
+            'radius': 20,
+            'gradient': [
+    'rgba(0, 255, 255, 0)',
+    'rgba(0, 255, 255, 1)',
+    'rgba(0, 191, 255, 1)',
+    'rgba(0, 127, 255, 1)',
+    'rgba(0, 63, 255, 1)',
+    'rgba(0, 0, 255, 1)',
+    'rgba(0, 0, 223, 1)',
+    'rgba(0, 0, 191, 1)',
+    'rgba(0, 0, 159, 1)',
+    'rgba(0, 0, 127, 1)',
+    'rgba(63, 0, 91, 1)',
+    'rgba(127, 0, 63, 1)',
+    'rgba(191, 0, 31, 1)',
+    'rgba(255, 0, 0, 1)'
+  ]
+        });
         heatmap.setMap(map);
+        oldMap.setMap(null);
     }
 
     // true if outerBounds exists and viewport corners are inside outerBounds
