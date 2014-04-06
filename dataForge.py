@@ -13,8 +13,6 @@ import calendar
 import urllib2
 import numpy
 import random
-from instagram.client import InstagramAPI
-from instagram import client, oauth2, InstagramAPIError
 from firebase import firebase
 
 fb = firebase.FirebaseApplication('https://hotspots.firebaseio.com', authentication=None)
