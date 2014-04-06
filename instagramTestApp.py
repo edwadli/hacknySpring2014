@@ -1,12 +1,36 @@
+#! /usr/bin/python
+
+import types
+import sys
+import json
+import simplejson
+import time
+import getpass
+import unittest
+import urlparse
+import datetime
+import calendar
+import urllib2
+
 instagram_client_key = 'f4c597a88f114c0ba8eb949d54336a58'
 instagram_client_secret = 'c4b0f208cda64720b534fc14b126007b'
 
-api = InstagramAPI(client_id='YOUR_CLIENT_ID', client_secret='YOUR_CLIENT_SECRET')
-popular_media = api.media_popular(count=20)
-for media in popular_media:
-    print media.images['standard_resolution'].url
+DIST = str(5000)
+TIME_LAPSE = 6 # in hours
+
+#nycLat = str(40.805406700000000000)
+#nycLng = str(-73.961330699999960000)
+
+def getData(lat,lng):
+	time = str(calendar.timegm((datetime.datetime.now() - datetime.timedelta(hours=TIME_LAPSE)).utctimetuple()))
+	getInfo = urllib2.urlopen('https://api.instagram.com/v1/media/search?lat=' + lat + '&lng=' + lng + '&distance=' + DIST + '&min_timestamp='+ time + '&client_id=' + instagram_client_key).read()
+	return json.loads(getInfo)['data']
 
 
-api.create_subscription(object='location', object_id='1257285', aspect='media', callback_url='http://mydomain.com/hook/instagram')
-# Subscribe to all media in a geographic area
-api.create_subscription(object='geography', lat=35.657872, lng=139.70232, radius=1000, aspect='media', callback_url='http://mydomain.com/hook/instagram')
+def getInstagramURLSForCoordinateAndHashtag(lat,lng,tag):
+	images = []
+	data = getData(lat,lng)
+	for post in data:
+		if tag in post['tags']:
+			images.append(post['images']);
+	return images
