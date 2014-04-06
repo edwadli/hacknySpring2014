@@ -1,8 +1,19 @@
-define(['map'], function (Map) {
+define(['map', 'firebase'], function (Map, Firebase) {
+
+    var fireRef;
 
     var App = {
-        init: function() {
-            Map.onLoad = Map.setMarkers.bind(Map, getTestPoints());
+        init: function(firebaseUrl) {
+            fireRef = new Firebase(firebaseUrl);
+            Map.onLoad = function() {
+                setCallback();
+                // Map.setMarkers([{
+                //     lat: 40.6700,
+                //     lng: -73.9400,
+                //     tweets: ["hi", "hello"],
+                //     instagrams: ["https://developers.google.com/_static/images/silhouette36.png"]
+                // }]);
+            };
             Map.onBoundsChanged = setBounds;
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(function (location) {
@@ -11,40 +22,42 @@ define(['map'], function (Map) {
                     console.log("Error: " + msg);
                     Map.load();
                 });
-            getTestPoints();
-
+            } else {
+                Map.load();
             }
         }
     };
 
-
-    // center: {lat: lat || 40.6700, lng: lng || -73.9400},
-
-    function getTestPoints(sw, ne) {
-        var points = [],
-        s = 40.79,
-        w = -74.00,
-        n = 40.80,
-        e = -73.90;
-        if (sw && ne) {
-            s = sw.lat();
-            w = sw.lng();
-            n = ne.lat();
-            e = ne.lng();
-        }
-
-        for (var i = 0; i < 50; i++) {
-            points.push({
-                lat: s + (n-s)*Math.random(),
-                lng: w + (e-w)*Math.random()
+    function setCallback() {
+        fireRef.child('heatmap').once('value', function(snapshot) {
+            if (snapshot.val() === null) return;
+            console.log("received heatmap: " + snapshot.val() + Object.keys(snapshot.val()).length);
+            var data = snapshot.val();
+            var vals = Object.keys(data).map(function (key) {
+                return data[key];
             });
-        }
-        return points;
+            Map.setHeatmapPoints(vals);
+        });
+        fireRef.child('heatmap').on('child_added', function(snapshot) {
+            if (snapshot.val() === null) return;
+            // console.log("received heatmap point: " + snapshot.val());
+            Map.setHeatmapPoint(snapshot.val());
+        });
+        fireRef.child('markers').on('value', function(snapshot) {
+            if (snapshot.val() === null) return;
+            console.log("received markers: " + snapshot.val().length);
+            Map.setMarkers(snapshot.val());
+        });
     }
 
     function setBounds(bounds) {
         console.log("bounds set: " + bounds);
-        Map.setMarkers(getTestPoints(bounds.getSouthWest(), bounds.getNorthEast()));
+        ne = bounds.getNorthEast();
+        sw = bounds.getSouthWest();
+        fireRef.child('bounds').set([
+            {lat: ne.lat(), lng: ne.lng()},
+            {lat: sw.lat(), lng: sw.lng()} ]);
+        fireRef.child('changed').set(true);
     }
 
     return App;

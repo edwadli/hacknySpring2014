@@ -12,11 +12,9 @@ import datetime
 import calendar
 import urllib2
 import numpy
-from instagram.client import InstagramAPI
-from instagram import client, oauth2, InstagramAPIError
 
 #takes an array of dictionaries with 'lat' and 'lng' keys
-def calculateMarkerPointFromRelatedCoordinated(coordinateArray):
+def calculateMarkerPointFromRelatedCoordinates(coordinateArray):
 	finalPoint = { 'lat' : 0, 'lng' : 0}
 	latitudes = []
 	longitudes = []
