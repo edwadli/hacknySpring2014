@@ -1,6 +1,7 @@
 import tweepy
 import json
 import globeDist
+import time
 from firebase import firebase
 
 # Authentication details. To  obtain these visit dev.twitter.com
@@ -46,17 +47,17 @@ def updateFirebase(myLat, myLng, myRad):
     api = tweepy.API(auth)
 
     heatmap_coords = []
-    myTwts = api.search(geocode=loc, count=50)
+    myTwts = api.search(geocode=loc, count=10000)
+    textStr = ""
     for i, tweet in enumerate(myTwts):
-        #print tweet.entities
-        #break
+        textStr += tweet.text.encode('ascii', 'ignore')
         if tweet.coordinates != None:
             coords = tweet.coordinates['coordinates']
-            heatmap_coords.append({'lng':coords[0],
-                                    'lat':coords[1],
+            heatmap_coords.append({'lng':coords[1],
+                                    'lat':coords[0],
                                     'id': i})
             #print '%s %s %s' %(tweet.created_at, tweet.text.encode('ascii', 'ignore'), tweet.coordinates['coordinates'])
-    return heatmap_coords
+    return heatmap_coords, textStr
 
 
 def callback_renewBounds(response):
@@ -73,11 +74,13 @@ def callback_renewBounds(response):
     myLat = (NE['lat']+SW['lat'])/2.0
     myLng = (NE['lng']+SW['lng'])/2.0
 
-    heatmap_coords = updateFirebase(myLat, myLng, myRad)
+    heatmap_coords, textStr = updateFirebase(myLat, myLng, myRad)
     post_result = fb.put('/', 'heatmap', heatmap_coords)
     print post_result
 
 if __name__ == '__main__':
+    fb.get_async('/bounds',None,callback=callback_renewBounds)
     while True:
+        time.sleep(5)
         fb.get_async('/bounds',None,callback=callback_renewBounds)
     
