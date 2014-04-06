@@ -1,8 +1,11 @@
-define(['map'], function (Map) {
+define(['map', 'firebase'], function (Map, Firebase) {
+
+    var fireRef;
 
     var App = {
-        init: function() {
-            Map.onLoad = Map.setMarkers.bind(Map, getTestPoints());
+        init: function(firebaseUrl) {
+            fireRef = new Firebase(firebaseUrl);
+            Map.onLoad = setBounds;
             Map.onBoundsChanged = setBounds;
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(function (location) {
@@ -11,40 +14,23 @@ define(['map'], function (Map) {
                     console.log("Error: " + msg);
                     Map.load();
                 });
-            getTestPoints();
-
             }
+            fireRef.child('heatmap').on('value', function(snapshot) {
+                Map.setHeatmapPoints(snapshot.val());
+            });
+            fireRef.child('markers').on('value', function(snapshot) {
+                Map.setMarkers(snapshot.val());
+            });
         }
     };
 
-
-    // center: {lat: lat || 40.6700, lng: lng || -73.9400},
-
-    function getTestPoints(sw, ne) {
-        var points = [],
-        s = 40.79,
-        w = -74.00,
-        n = 40.80,
-        e = -73.90;
-        if (sw && ne) {
-            s = sw.lat();
-            w = sw.lng();
-            n = ne.lat();
-            e = ne.lng();
-        }
-
-        for (var i = 0; i < 50; i++) {
-            points.push({
-                lat: s + (n-s)*Math.random(),
-                lng: w + (e-w)*Math.random()
-            });
-        }
-        return points;
-    }
-
     function setBounds(bounds) {
         console.log("bounds set: " + bounds);
-        Map.setMarkers(getTestPoints(bounds.getSouthWest(), bounds.getNorthEast()));
+        ne = bounds.getNorthEast();
+        sw = bounds.getSouthWest();
+        fireRef.child('bounds').set([
+            {lat: ne.lat(), lng: ne.lng()},
+            {lat: sw.lat(), lng: sw.lng()} ]);
     }
 
     return App;

@@ -14,7 +14,9 @@ define(['gmaps'], function (gmaps) {
             };
             map = new gmaps.Map(document.getElementById("map-canvas"),
                 mapOptions);
-            gmaps.event.addListenerOnce(map, 'idle', this.onLoad);
+            gmaps.event.addListenerOnce(map, 'idle', function () {
+                // this.onLoad(map.getBounds());
+            }.bind(this));
             gmaps.event.addListener(map, 'idle', function () {
                 var bounds = map.getBounds();
                 if (!insideOuterBounds(bounds)) {
