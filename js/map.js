@@ -1,9 +1,8 @@
 define(['gmaps'], function (gmaps) {
-    var map,
+    var map, outerBounds, // outer bounding box
     heatmap = new gmaps.visualization.HeatmapLayer({data:[]}),
     heatmapData = [],
-    BOUNDS_CHANGE_DELAY = 1000,
-    bounds_change_timer = null;
+    OUTER_BOUNDS_RATIO = 3;
 
     var Map = {
         load: function loadMap(lat, lng) {
@@ -14,20 +13,27 @@ define(['gmaps'], function (gmaps) {
             };
             map = new gmaps.Map(document.getElementById("map-canvas"),
                 mapOptions);
-            gmaps.event.addListener(map, 'bounds_changed', function () {
+            gmaps.event.addListenerOnce(map, 'idle', this.onLoad);
+            gmaps.event.addListener(map, 'idle', function () {
                 var bounds = map.getBounds();
-                clearTimeout(bounds_change_timer);
-                bounds_change_timer = setTimeout(function(){
-                    removeUnboundedPoints(bounds);
-                    this.onBoundsChanged(bounds);
-                }.bind(this), BOUNDS_CHANGE_DELAY);
+                if (!insideOuterBounds(bounds)) {
+                    outerBounds = expandBounds(bounds, OUTER_BOUNDS_RATIO);
+                    this.onBoundsChanged(outerBounds);
+                }
+            }.bind(this));
+            gmaps.event.addListener(map, 'zoom_changed', function () {
+                var bounds = map.getBounds();
+                outerBounds = expandBounds(bounds, OUTER_BOUNDS_RATIO);
+                this.onBoundsChanged(outerBounds);
             }.bind(this));
         },
-        // default onBoundsChanged function
+        // default onBoundsChanged function, is given outer bounds as argument
         onBoundsChanged: function (bounds) {
             console.log("bounds changed");
         },
-        addHeatmapPoints: function (points) {
+        onLoad: function(){console.log("loaded");},
+        setHeatmapPoints: function (points) {
+            heatmapData = [];
             points.forEach(function (point) {
                 var p =new gmaps.LatLng(point.lat, point.lng);
                 heatmapData.push(p);
@@ -36,20 +42,31 @@ define(['gmaps'], function (gmaps) {
         }
     };
 
-    function removeUnboundedPoints(bounds) {
-        var oldLength = heatmapData.length;
-        heatmapData = heatmapData.filter(function(point) {
-            return bounds.contains(point);
-        });
-        if (heatmapData.length !== oldLength) {
-            updateHeatmap();
-        }
-    }
-
     function updateHeatmap() {
         heatmap.setMap(null);
         heatmap = new gmaps.visualization.HeatmapLayer({data: heatmapData});
         heatmap.setMap(map);
+    }
+
+    // true if outerBounds exists and viewport corners are inside outerBounds
+    function insideOuterBounds(bounds) {
+        return outerBounds && outerBounds.contains(bounds.getNorthEast()) &&
+        outerBounds.contains(bounds.getSouthWest());
+    }
+
+    function expandBounds(bounds, ratio) {
+        var ne = bounds.getNorthEast(),
+        sw = bounds.getSouthWest(),
+        c = bounds.getCenter();
+        sw = expandLatLng(c, sw, ratio);
+        ne = expandLatLng(c, ne, ratio);
+        return new gmaps.LatLngBounds(sw, ne);
+    }
+
+    function expandLatLng(center, corner, ratio) {
+        var dlat = corner.lat() - center.lat(),
+        dlng = corner.lng() - center.lng();
+        return new gmaps.LatLng(center.lat() + ratio*dlat, center.lng() + ratio*dlng);
     }
 
     return Map;

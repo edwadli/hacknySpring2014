@@ -2,6 +2,7 @@ define(['map'], function (Map) {
 
     var App = {
         init: function() {
+            Map.onLoad = Map.setHeatmapPoints.bind(Map, getTestPoints());
             Map.onBoundsChanged = setBounds;
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(function (location) {
@@ -10,7 +11,8 @@ define(['map'], function (Map) {
                     console.log("Error: " + msg);
                     Map.load();
                 });
-            setTimeout(addTestPoints, 3000);
+            getTestPoints();
+
             }
         }
     };
@@ -18,24 +20,31 @@ define(['map'], function (Map) {
 
     // center: {lat: lat || 40.6700, lng: lng || -73.9400},
 
-    function addTestPoints() {
+    function getTestPoints(sw, ne) {
         var points = [],
         s = 40.79,
         w = -74.00,
         n = 40.80,
         e = -73.90;
+        if (sw && ne) {
+            s = sw.lat();
+            w = sw.lng();
+            n = ne.lat();
+            e = ne.lng();
+        }
 
         for (var i = 0; i < 100; i++) {
             points.push({
-                lat: 0.4*(n-s) + s + 0.2*(n-s)*Math.random(),
-                lng: 0.4*(e-w) + w + 0.2*(e-w)*Math.random()
+                lat: s + (n-s)*Math.random(),
+                lng: w + (e-w)*Math.random()
             });
         }
-        Map.addHeatmapPoints(points);
+        return points;
     }
 
     function setBounds(bounds) {
         console.log("bounds set: " + bounds);
+        Map.setHeatmapPoints(getTestPoints(bounds.getSouthWest(), bounds.getNorthEast()));
     }
 
     return App;
