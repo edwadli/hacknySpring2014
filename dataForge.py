@@ -15,6 +15,9 @@ import numpy
 import random
 from instagram.client import InstagramAPI
 from instagram import client, oauth2, InstagramAPIError
+from firebase import firebase
+
+fb = firebase.FirebaseApplication('https://hotspots.firebaseio.com', authentication=None)
 
 sample1T = 'http://distillery.s3.amazonaws.com/media/2011/01/28/0cc4f24f25654b1c8d655835c58b850a_5.jpg'
 sample1L = 'http://distillery.s3.amazonaws.com/media/2011/01/28/0cc4f24f25654b1c8d655835c58b850a_6.jpg'
@@ -61,5 +64,5 @@ for x in range(0,2):
 	}
 	result.append(resultDict)
 
-print result
+fb.put('/','markers',result)
 

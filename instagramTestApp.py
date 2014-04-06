@@ -36,5 +36,3 @@ def getInstagramURLSForCoordinateAndHashtag(lat,lng,tag):
 		if tag in post['tags']:
 			images.append(post['images']);
 	return images
-
-#print getInstagramURLSForCoordinateAndHashtag(nycLat,nycLng,'nyc')
