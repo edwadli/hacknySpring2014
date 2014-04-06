@@ -28,6 +28,7 @@ def getData(lat,lng):
 	getInfo = urllib2.urlopen('https://api.instagram.com/v1/media/search?lat=' + lat + '&lng=' + lng + '&distance=' + DIST + '&min_timestamp='+ time + '&client_id=' + instagram_client_key).read()
 	return json.loads(getInfo)['data']
 
+
 def getInstagramURLSForCoordinateAndHashtag(lat,lng,tag):
 	images = []
 	data = getData(lat,lng)
@@ -35,5 +36,3 @@ def getInstagramURLSForCoordinateAndHashtag(lat,lng,tag):
 		if tag in post['tags']:
 			images.append(post['images']);
 	return images
-
-#print getInstagramURLSForCoordinateAndHashtag(nycLat,nycLng,'nyc')
