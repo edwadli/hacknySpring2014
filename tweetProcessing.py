@@ -20,12 +20,12 @@ instagram_client_secret = 'c4b0f208cda64720b534fc14b126007b'
 def updateWordHistogram(histogramDictionary,tweetBody):
 	keyWordArray = tweetBody.split(" ")
 	for word in keyWordArray:
-		word = word.lower()
-		word = word.replace("#", "")
-		if word in histogramDictionary.keys():
-			histogramDictionary[word] += 1
-		else:
-			histogramDictionary[word] = 1
+		if len(word) > 4:
+			currWord = conditionWord(word)
+			if currWord in histogramDictionary.keys():
+				histogramDictionary[currWord] += 1
+			else:
+				histogramDictionary[currWord] = 1
 
 def conditionWord(unconditionedWord):
 	word = unconditionedWord
@@ -33,10 +33,3 @@ def conditionWord(unconditionedWord):
 	word = word.translate(None,'`~!@#$%^&*()-_=+[]{};:\",./<>?\|')
 	return word
 
-words = ['Hello there world!','asflkajsdf2-3- 02340---()(sdf aadf** ds']
-for word in words:
-	print word + "\n\t" + conditionWord(word)
-
-
-
-#print getInstagramURLSForCoordinateAndHashtag(nycLat,nycLng,'nyc')

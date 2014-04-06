@@ -40,7 +40,7 @@ def calculateMarkerPointFromRelatedCoordinated(coordinateArray):
 	print count
 	return { 'lat' : sumLats / count, 'lng' : sumLngs / count}
 
-
+'''
 points = [
 			{
 				'lat' : 40.57886,
@@ -67,4 +67,4 @@ points = [
 				'lng' : -74.54
 			}
 		]
-print calculateMarkerPointFromRelatedCoordinated(points)
+print calculateMarkerPointFromRelatedCoordinated(points)'''
