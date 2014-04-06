@@ -6,7 +6,7 @@ import re
 import urllib2
 from firebase import firebase
 
-
+heatmap_coords = {}
 # Authentication details. To  obtain these visit dev.twitter.com
 
 consumer_key = 'T0foLprojTuyETudVyaUPYUeP'
@@ -33,9 +33,13 @@ class StdOutListener(tweepy.StreamListener):
     def on_error(self, status):
         print status
 
+pNum = re.compile('-?\d+.\d+')
+pLat = re.compile('USER_LAT:\s-?\d+.\d+,')
+pLng = re.compile('USER_LNG:\s-?\d+.\d+,')
+
 def updateFirebase(myLat, myLng, myRad):
     
-    loc = str(myLat) + ',' + str(myLng) + ',' + str(myRad) + 'mi'
+    loc = str(myLat) + ',' + str(myLng) + ',' + str(myRad/2.0) + 'mi'
     l = StdOutListener()
     auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
     auth.set_access_token(access_token, access_token_secret)
@@ -50,21 +54,38 @@ def updateFirebase(myLat, myLng, myRad):
         #,locations=[-74,40,-73,41])
     api = tweepy.API(auth)
     count = 0
-    heatmap_coords = []
-    myTwts = api.search(q='4sq.com', geocode=loc, count=10)
+    myTwts = api.search(q='4sq.com', geocode=loc, count=100)
     for i, tweet in enumerate(myTwts):
         count += 1
-        print 'Tweet', tweet.text.encode('ascii', 'ignore')
-        url = re.findall('4sq.com/(?:[a-zA-Z]|[0-9])+',
+        #print 'Tweet', tweet.text.encode('ascii', 'ignore')
+        url = re.findall('t.co/\w+',
                         tweet.text)
-        if url:
-            the_html = urllib2.urlopen(url[0]).read()
-            print the_html
         if tweet.coordinates != None:
             coords = tweet.coordinates['coordinates']
-            heatmap_coords.append({'lng':coords[0],
-                                    'lat':coords[1],
-                                    'id': i})
+            post_result = fb.put('/heatmap/', tweet.id, {'lng':coords[0],
+                                    'lat':coords[1]})
+            # print post_result
+            # heatmap_coords[tweet.id] = {'lng':coords[0],
+            #                         'lat':coords[1]}
+            # heatmap_coords.append({'lng':coords[0],
+            #                         'lat':coords[1],
+            #                         'id': i})
+        elif url:
+            try:
+                the_html = urllib2.urlopen("http://" + url[0]).read()
+                #print the_html
+                lat = float(pNum.search(pLat.search(the_html).group()).group())
+                lng = float(pNum.search(pLng.search(the_html).group()).group())
+                coords = tweet.coordinates['coordinates']
+                post_result = fb.put('/heatmap/', tweet.id, {'lng':coords[0],
+                                        'lat':coords[1]})
+                # heatmap_coords[tweet.id] = {'lng':lng,
+                #                         'lat':lat}
+                # heatmap_coords.append({'lng':lng,
+                #                         'lat':lat,
+                #                         'id': i})
+            except:
+                print "404 caught", tweet.text.encode('ascii', 'ignore')
             #print '%s %s %s' %(tweet.created_at, tweet.text.encode('ascii', 'ignore'), tweet.coordinates['coordinates'])
     #print "The count is" + str(count)
     return heatmap_coords
@@ -86,8 +107,8 @@ def callback_renewBounds(events):
     myLng = (NE['lng']+SW['lng'])/2.0
 
     heatmap_coords = updateFirebase(myLat, myLng, myRad)
-    post_result = fb.put('/', 'heatmap', heatmap_coords)
-    print post_result
+    # post_result = fb.put('/heatmap/', tweet.id, heatmap_coords)
+    # print post_result
 
 
 if __name__ == '__main__':
